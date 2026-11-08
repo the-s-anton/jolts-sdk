@@ -1,0 +1,42 @@
+{
+  "name": "@jolts/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Server requests and browser measurement for Jolts publishers",
+  "exports": {
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "default": "./dist/server.js"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "default": "./dist/browser.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "prepack": "npm --prefix ../.. run sdk:build"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the-s-anton/jolts-sdk.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/the-s-anton/jolts-sdk/tree/main/packages/sdk#readme",
+  "bugs": {
+    "url": "https://github.com/the-s-anton/jolts-sdk/issues"
+  }
+}

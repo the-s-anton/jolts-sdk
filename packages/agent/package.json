@@ -1,0 +1,38 @@
+{
+  "name": "@jolts/agent",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Local publisher setup tools for coding agents",
+  "bin": {
+    "jolts-agent": "dist/server.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.4.0",
+    "zod": "^4.6.7"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "prepack": "npm --prefix ../.. run agent:build"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/the-s-anton/jolts-sdk.git",
+    "directory": "packages/agent"
+  },
+  "homepage": "https://github.com/the-s-anton/jolts-sdk/tree/main/packages/agent#readme",
+  "bugs": {
+    "url": "https://github.com/the-s-anton/jolts-sdk/issues"
+  }
+}
