@@ -33,14 +33,7 @@ test("packed agent installs independently and starts the MCP executable", {
     await writeFile(join(directory, "package.json"), JSON.stringify({ private: true }));
     execFileSync(
       "npm",
-      [
-        "install",
-        "--offline",
-        "--ignore-scripts",
-        "--no-audit",
-        "--no-fund",
-        join(directory, archive.filename),
-      ],
+      ["install", "--ignore-scripts", "--no-audit", "--no-fund", join(directory, archive.filename)],
       { cwd: directory },
     );
     child = spawn(
