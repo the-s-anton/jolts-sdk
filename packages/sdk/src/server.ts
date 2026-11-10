@@ -16,6 +16,7 @@ export type { AdRequest, Delivery, Diagnostic } from "./protocol.js";
 export interface ClientOptions {
   endpoint: string;
   apiKey: string;
+  configurationUrl?: string;
   timeoutMs?: number;
   onError?: OnError;
 }
@@ -23,6 +24,7 @@ export interface ClientOptions {
 export function createClient({
   endpoint,
   apiKey,
+  configurationUrl,
   timeoutMs = DEFAULT_TIMEOUT_MS,
   onError,
 }: ClientOptions) {
@@ -31,6 +33,9 @@ export function createClient({
     throw new Error("Jolts requires a secure endpoint, server credential and positive timeout");
   }
   const origin = new URL(endpoint).origin;
+  if (configurationUrl !== undefined && !safeUrl(configurationUrl, origin)) {
+    throw new Error("Use the configuration URL supplied by Jolts setup");
+  }
 
   return {
     async requestAd(input: AdRequest, signal?: AbortSignal): Promise<Delivery | null> {
@@ -40,10 +45,29 @@ export function createClient({
       const combined = signal ? AbortSignal.any([signal, deadline.signal]) : deadline.signal;
       let received = false;
       try {
+        let payload: AdRequest | null = input;
+        if (configurationUrl) {
+          const configuration = await fetch(configurationUrl, {
+            headers: { Authorization: `Bearer ${apiKey}` },
+            signal: combined,
+            redirect: "error",
+            credentials: "omit",
+            cache: "no-store",
+          });
+          if (!configuration.ok) {
+            notify(onError, { code: "http", status: configuration.status });
+            await configuration.body?.cancel();
+            return null;
+          }
+          received = true;
+          payload = configuredRequest(input, await readJson(configuration));
+          if (!payload) return null;
+          received = false;
+        }
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify(input),
+          body: JSON.stringify(payload),
           signal: combined,
           redirect: "error",
           credentials: "omit",
@@ -80,6 +104,40 @@ export function createClient({
       } finally {
         clearTimeout(timer);
       }
+    },
+  };
+}
+
+function configuredRequest(input: AdRequest, value: unknown): AdRequest | null {
+  if (!value || typeof value !== "object") throw new Error("Invalid configuration");
+  const config = value as Record<string, unknown>;
+  if (
+    config.version !== 1 ||
+    typeof config.enabled !== "boolean" ||
+    typeof config.audience_insights !== "boolean" ||
+    !["full_context", "latest_message", "summary_only", "disabled"].includes(
+      String(config.context_sharing),
+    )
+  ) {
+    throw new Error("Unsupported configuration");
+  }
+  if (!config.enabled || config.context_sharing === "disabled") return null;
+  let context = input.context;
+  if (config.context_sharing === "latest_message") {
+    const latest = input.context.messages?.at(-1);
+    if (!latest) return null;
+    context = { messages: [latest] };
+  } else if (config.context_sharing === "summary_only") {
+    const { summary, keywords } = input.context;
+    if (!summary && !keywords?.length) return null;
+    context = { ...(summary ? { summary } : {}), ...(keywords?.length ? { keywords } : {}) };
+  }
+  return {
+    ...input,
+    context,
+    privacy: {
+      ...input.privacy,
+      audience_insights: input.privacy.audience_insights === true && config.audience_insights,
     },
   };
 }

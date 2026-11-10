@@ -86,6 +86,7 @@ export class Setup {
         throw new Error("Invalid setup response.");
       }
       const endpoint = this.responseUrl(response.requests_url);
+      const configurationUrl = this.responseUrl(response.configuration_url);
       const installationUrl = this.responseUrl(response.installation_url);
       const previousDigest = response.previous_digest;
       if (
@@ -98,7 +99,13 @@ export class Setup {
         { key: this.key, padding: constants.RSA_PKCS1_OAEP_PADDING, oaepHash: "sha256" },
         Buffer.from(response.encrypted_token, "base64"),
       ).toString("utf8");
-      const file = this.dependencies.install(this.directory, token, endpoint, previousDigest);
+      const file = this.dependencies.install(
+        this.directory,
+        token,
+        endpoint,
+        previousDigest,
+        configurationUrl,
+      );
       this.key = undefined;
       this.installation = { token, url: installationUrl, file };
       return this.confirmInstallation();

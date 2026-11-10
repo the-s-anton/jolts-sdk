@@ -7,6 +7,7 @@ import { createClient } from "../dist/server.js";
 const client = createClient({
   endpoint: process.env.JOLTS_ENDPOINT,
   apiKey: process.env.JOLTS_API_KEY,
+  configurationUrl: process.env.JOLTS_CONFIGURATION_URL,
   onError: ({ code, status }) => console.error(JSON.stringify({ code, status })),
 });
 let origin;
@@ -27,8 +28,14 @@ const server = createServer(async (request, response) => {
         answer_id: answerId,
         completed_at: new Date().toISOString(),
         origin,
-        context: { messages: [{ role: "user", content: "Compare trail running shoes" }] },
-        privacy: { contextual_ads: true, measurement: true },
+        context: {
+          messages: [
+            { role: "user", content: "Earlier synthetic question" },
+            { role: "user", content: "Compare trail running shoes" },
+          ],
+        },
+        privacy: { contextual_ads: true, measurement: true, audience_insights: true },
+        user: { session_id: "synthetic-session" },
         device: { ip: request.socket.remoteAddress, user_agent: request.headers["user-agent"] },
       });
       response.setHeader("Content-Type", "application/json");

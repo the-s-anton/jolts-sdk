@@ -8,7 +8,7 @@ publisher-only: advertiser auctions and payments are not included.
 ## Install
 
 ```sh
-npm install --save-exact @jolts/sdk@0.1.0
+npm install --save-exact @jolts/sdk@0.2.0
 ```
 
 Use your app's Setup instructions to connect through the local MCP agent.
@@ -35,6 +35,7 @@ import { createClient } from "@jolts/sdk/server";
 const client = createClient({
   endpoint: process.env.JOLTS_ENDPOINT!,
   apiKey: process.env.JOLTS_API_KEY!,
+  configurationUrl: process.env.JOLTS_CONFIGURATION_URL!,
 });
 
 // Run after the host has produced its answer. Do not await this before sending
@@ -142,3 +143,25 @@ the backend server IP or automatically trust arbitrary forwarding headers.
 the publisher app must also allow analysis. These fields are signals, not proof
 of a human, consent or a payable impression. Do not infer permission from the
 presence of an IP address or a user ID.
+
+## Dashboard settings
+
+Pass the configuration URL installed by the setup agent. Before each ad request,
+the server SDK fetches the authenticated configuration with no cache. Both calls
+share the request timeout and cancellation signal; neither blocks the AI answer.
+No configuration, unsupported version or disabled sharing means no ad and no
+conversation transmission. Existing callers without configurationUrl retain their
+legacy behavior; upgrade and reconnect once to enable remote sharing controls.
+
+Conversation sharing can send the supplied context, only its latest message, or
+only already-supplied keywords/summary. The SDK never generates a summary. If the
+selected input is unavailable, it skips the ad. Audience analysis requires both
+the caller's permission and the dashboard setting; settings never grant consent.
+The caller's input object is not mutated. Ad eligibility, country restrictions,
+category blocking and frequency remain server enforced. Changes apply to new
+requests, not cards already displayed. Do not automatically retry an opportunity
+with a changed payload after settings change; create a new opportunity for a new answer.
+
+SDK 0.2 supports the existing card renderer. New rendering formats or new insertion
+locations still require integration support; dashboard settings cannot add unknown
+code to a publisher's app.

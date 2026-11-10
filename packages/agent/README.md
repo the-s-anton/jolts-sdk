@@ -5,7 +5,7 @@ computer. Requires Node 22 or newer and a Git project. This is separate from the
 publisher SDK and adds no dependency to the publisher's application.
 
 Use the MCP configuration supplied by your app's Setup page. It runs
-`npx --yes --package @jolts/agent@0.1.0 jolts-agent` with your absolute
+`npx --yes --package @jolts/agent@0.2.0 jolts-agent` with your absolute
 project path and the app's generated authorization URL. Keep this local process
 running while you approve and finish setup.
 
@@ -21,7 +21,7 @@ development hosts.
 Call `begin_publisher_setup`, open its approval URL for the publisher, then call
 `finish_publisher_setup` after approval. The private RSA key stays in this process.
 Rails returns an encrypted test credential after workspace approval. The process
-decrypts it and installs `JOLTS_API_KEY` and `JOLTS_ENDPOINT` in `.env.local` with
+decrypts it and installs `JOLTS_API_KEY`, `JOLTS_ENDPOINT` and `JOLTS_CONFIGURATION_URL` in `.env.local` with
 owner-only permissions. Tool results never contain the credential.
 
 The file must be ignored and untracked by Git. Initial setup never overwrites existing Jolts settings. Do not read the environment file into the agent's conversation.
@@ -53,3 +53,8 @@ extend the overlap. If the agent process stops before acknowledgement, the old
 connection is not shortened; resume or start another approved setup, and revoke
 unused connections from the dashboard. Installation acknowledgement does not prove
 that a running publisher process has reloaded its environment.
+
+The platform must provide configuration_url during approval. SDK 0.2 uses that
+URL to apply dashboard sharing preferences before transmission. Installation
+configures the local project only: production host secrets and deployment require
+the publisher's supported hosting workflow and explicit deployment authorization.

@@ -32,6 +32,7 @@ test("approval installs the decrypted token without exposing it in results", asy
           Buffer.from(token),
         ).toString("base64"),
         requests_url: "https://app.example.test/api/v1/requests",
+        configuration_url: "https://app.example.test/api/v1/configuration",
         installation_url: "https://app.example.test/api/v1/credentials/one/installation",
       });
     },

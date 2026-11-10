@@ -21,12 +21,20 @@ export function installEnvironment(
   token: string,
   endpoint: string,
   previousDigest?: string,
+  configurationUrl?: string,
 ): string {
   if (!/^[a-f0-9]{64}$/.test(token)) {
     throw new Error("Invalid setup credential.");
   }
   if (!/^https?:\/\/[^\s'"\\`$#]+$/.test(endpoint)) {
     throw new Error("Invalid setup endpoint.");
+  }
+  if (
+    configurationUrl !== undefined &&
+    (!/^https?:\/\/[^\s'"\\`$#]+$/.test(configurationUrl) ||
+      new URL(configurationUrl).origin !== new URL(endpoint).origin)
+  ) {
+    throw new Error("Invalid configuration endpoint.");
   }
   const root = projectRoot(directory);
   const file = join(root, ".env.local");
@@ -77,7 +85,10 @@ export function installEnvironment(
       try {
         writeFileSync(
           output,
-          existing.replace(`JOLTS_API_KEY=${previous}`, `JOLTS_API_KEY=${token}`),
+          existing
+            .replace(`JOLTS_API_KEY=${previous}`, `JOLTS_API_KEY=${token}`)
+            .replace(/^JOLTS_CONFIGURATION_URL=.*\n?/gm, "") +
+            (configurationUrl ? `\nJOLTS_CONFIGURATION_URL=${configurationUrl}\n` : ""),
         );
         fsyncSync(output);
         const current = lstatSync(file);
@@ -97,12 +108,15 @@ export function installEnvironment(
       }
       return file;
     }
-    if (/^\s*(?:export\s+)?JOLTS_(?:API_KEY|ENDPOINT)\s*=/m.test(existing)) {
+    if (/^\s*(?:export\s+)?JOLTS_(?:API_KEY|ENDPOINT|CONFIGURATION_URL)\s*=/m.test(existing)) {
       throw new Error("Jolts is already configured. Existing settings were preserved.");
     }
     fchmodSync(descriptor, 0o600);
     const separator = existing.length > 0 && !existing.endsWith("\n") ? "\n" : "";
-    writeFileSync(descriptor, `${separator}JOLTS_API_KEY=${token}\nJOLTS_ENDPOINT=${endpoint}\n`);
+    writeFileSync(
+      descriptor,
+      `${separator}JOLTS_API_KEY=${token}\nJOLTS_ENDPOINT=${endpoint}\n${configurationUrl ? `JOLTS_CONFIGURATION_URL=${configurationUrl}\n` : ""}`,
+    );
     return file;
   } finally {
     closeSync(descriptor);

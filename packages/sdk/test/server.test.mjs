@@ -208,3 +208,52 @@ test("caller cancellation stops the request without exposing diagnostic callback
     },
   );
 });
+
+test("remote settings strip history before transmission and refresh without restarting", async () => {
+  let settings = {
+    version: 1,
+    enabled: true,
+    context_sharing: "latest_message",
+    audience_insights: false,
+  };
+  const sent = [];
+  await withApi(
+    async (request, response) => {
+      response.setHeader("Content-Type", "application/json");
+      if (request.url === "/configuration") return response.end(JSON.stringify(settings));
+      const chunks = [];
+      for await (const chunk of request) chunks.push(chunk);
+      sent.push(JSON.parse(Buffer.concat(chunks)));
+      response.end(JSON.stringify({ status: "no_fill" }));
+    },
+    async (base) => {
+      const client = createClient({
+        endpoint: base,
+        configurationUrl: `${base}/configuration`,
+        apiKey: "key",
+      });
+      const request = {
+        ...input,
+        context: {
+          messages: [
+            { role: "user", content: "Private history" },
+            { role: "user", content: "Current question" },
+          ],
+        },
+        privacy: { ...input.privacy, audience_insights: true },
+      };
+      await client.requestAd(request);
+      assert.deepEqual(sent[0].context, {
+        messages: [{ role: "user", content: "Current question" }],
+      });
+      assert.equal(sent[0].privacy.audience_insights, false);
+      assert.equal(request.context.messages.length, 2);
+      settings = { ...settings, enabled: false };
+      await client.requestAd(request);
+      assert.equal(sent.length, 1);
+      settings = { version: 999 };
+      await client.requestAd(request);
+      assert.equal(sent.length, 1);
+    },
+  );
+});
