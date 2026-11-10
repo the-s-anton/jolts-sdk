@@ -37,6 +37,6 @@ Receipt acceptance is not proof of human attention or payable earnings.
 ## Repository ownership
 
 Package changes happen here. The private Rails repository retains its existing
-0.1.0 package snapshot for local regression fixtures. It must not independently
+versioned package snapshot for local regression fixtures. It must not independently
 develop package behavior. New releases are adopted there deliberately, with
 updated version pins and a full browser-approved integration rehearsal.

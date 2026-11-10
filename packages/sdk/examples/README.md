@@ -28,9 +28,14 @@ agent-installed credential. Revoke it in the dashboard when no longer needed.
 
 The localhost DNS adapter is only for local testing and is not shipped in the
 SDK. The example only binds to loopback. It sends synthetic context and does not
-enable audience insights. Do not expose it publicly or use its request fields as
+enable audience insights on the app. Its synthetic requests permit analysis so
+you can explicitly enable the setting when testing. Do not expose it publicly or use its request fields as
 a substitute for your production application's authorization and permissions.
 
 The production integration should use `mountAd` and call its returned cleanup
 when the answer component unmounts. This fixture uses `loadAd` and `renderAd`
 separately so its controls can explicitly exercise remounting the same delivery.
+
+While the server is running, change Conversation sharing in App Settings. Latest
+message only sends one of the fixture's two synthetic messages. Do not share
+returns no ad without sending context. These changes need no restart or code edit.
