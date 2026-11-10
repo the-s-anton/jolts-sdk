@@ -65,7 +65,7 @@ const server = createServer(async (request, response) => {
       response.setHeader("Content-Type", "text/html");
       response.end(`<!doctype html><html lang="en"><head>
         <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-        <title>Publisher SDK example</title></head><body><main>
+        <link rel="icon" href="data:,"><title>Publisher SDK example</title></head><body><main>
         <h1>A publisher's answer</h1><p>Compare grip, fit and drainage when choosing trail shoes.</p>
         <p id="status" role="status">Loading</p>
         <button id="show">Show card</button><button id="hide">Hide card</button>
